@@ -14,6 +14,8 @@ const routes: Record<string, RouteKey> = {
   '/equipe': 'equipe',
 }
 
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 const navItems = [
   { href: '/galeria', label: 'Galeria' },
   { href: '/artigos', label: 'Artigos' },
@@ -137,7 +139,15 @@ const team = [
 ]
 
 function getRoute(): RouteKey {
-  return routes[window.location.pathname] ?? 'home'
+  const path = basePath && window.location.pathname.startsWith(basePath)
+    ? window.location.pathname.slice(basePath.length) || '/'
+    : window.location.pathname
+
+  return routes[path] ?? 'home'
+}
+
+function toUrl(href: string) {
+  return `${basePath}${href}`
 }
 
 function App() {
@@ -169,14 +179,14 @@ function App() {
 
   function navigate(event: MouseEvent<HTMLAnchorElement>, href: string) {
     event.preventDefault()
-    window.history.pushState({}, '', href)
+    window.history.pushState({}, '', toUrl(href))
     setRoute(getRoute())
   }
 
   return (
     <div className="site-shell">
       <header className="topbar" aria-label="Navegação principal">
-        <a className="brand" href="/" onClick={(event) => navigate(event, '/')}>
+        <a className="brand" href={toUrl('/')} onClick={(event) => navigate(event, '/')}>
           <span className="brand-mark">CIT</span>
           <span>
             <strong>CIT IFRO</strong>
@@ -189,7 +199,7 @@ function App() {
             <a
               className={route === routes[item.href] ? 'active' : undefined}
               key={item.href}
-              href={item.href}
+              href={toUrl(item.href)}
               onClick={(event) => navigate(event, item.href)}
             >
               {item.label}
@@ -205,7 +215,7 @@ function App() {
           <strong>CIT IFRO</strong>
           <span>Portal institucional para memória, projetos, pesquisa e participação estudantil.</span>
         </div>
-        <a href="/vagas" onClick={(event) => navigate(event, '/vagas')}>
+        <a href={toUrl('/vagas')} onClick={(event) => navigate(event, '/vagas')}>
           Fazer parte
         </a>
       </footer>
@@ -439,12 +449,12 @@ function PageLink({
 }) {
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     event.preventDefault()
-    window.history.pushState({}, '', href)
+    window.history.pushState({}, '', toUrl(href))
     window.dispatchEvent(new PopStateEvent('popstate'))
   }
 
   return (
-    <a className={className} href={href} onClick={handleClick}>
+    <a className={className} href={toUrl(href)} onClick={handleClick}>
       {children}
     </a>
   )
